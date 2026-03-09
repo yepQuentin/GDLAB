@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   paginate,
   parseDailySections,
-  pickLatestCases,
+  pickLatestInsights,
   pickRecentDaily,
   sortByPublishDateDesc,
 } from "@/lib/content-utils";
@@ -36,7 +36,7 @@ const baseItems: ContentMeta[] = [
     id: "3",
     title: "Case 1",
     slug: "case-1",
-    type: "case",
+    type: "insight",
     publishDate: "2026-03-04",
     status: "Published",
     summary: "",
@@ -47,7 +47,7 @@ const baseItems: ContentMeta[] = [
     id: "4",
     title: "Case 2",
     slug: "case-2",
-    type: "case",
+    type: "insight",
     publishDate: "2026-03-03",
     status: "Published",
     summary: "",
@@ -58,7 +58,7 @@ const baseItems: ContentMeta[] = [
     id: "5",
     title: "Case 3",
     slug: "case-3",
-    type: "case",
+    type: "insight",
     publishDate: "2026-03-02",
     status: "Published",
     summary: "",
@@ -132,10 +132,10 @@ describe("content-utils", () => {
     expect(recentDaily.map((item) => item.id)).toEqual(["d-1", "d-2", "d-3"]);
   });
 
-  it("取最新 2 篇 Business Case", () => {
+  it("取最新 2 篇 Insights", () => {
     const sorted = sortByPublishDateDesc(baseItems);
-    const latestCases = pickLatestCases(sorted, 2);
-    expect(latestCases.map((item) => item.id)).toEqual(["3", "4"]);
+    const latestInsights = pickLatestInsights(sorted, 2);
+    expect(latestInsights.map((item) => item.id)).toEqual(["3", "4"]);
   });
 
   it("分页返回正确页码和切片", () => {

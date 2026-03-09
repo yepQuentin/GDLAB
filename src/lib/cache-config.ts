@@ -17,9 +17,9 @@ export const CACHE_TAG_LIST = [
 export const REVALIDATE_PATH_TARGETS = [
   { path: "/" },
   { path: "/daily" },
-  { path: "/cases" },
+  { path: "/insights" },
   { path: "/search" },
   { path: "/sitemap.xml" },
   { path: "/daily/[slug]", type: "page" as const },
-  { path: "/cases/[slug]", type: "page" as const },
+  { path: "/insights/[slug]", type: "page" as const },
 ] as const;

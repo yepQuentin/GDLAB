@@ -53,8 +53,8 @@ export function pickRecentDaily(items: ContentMeta[]): ContentMeta[] {
   return sortByPublishDateDesc(items.filter((item) => item.type === "daily")).slice(0, 3);
 }
 
-export function pickLatestCases(items: ContentMeta[], count = 2): ContentMeta[] {
-  return items.filter((item) => item.type === "case").slice(0, count);
+export function pickLatestInsights(items: ContentMeta[], count = 2): ContentMeta[] {
+  return items.filter((item) => item.type === "insight").slice(0, count);
 }
 
 export function sortByPublishDateDesc(items: ContentMeta[]): ContentMeta[] {

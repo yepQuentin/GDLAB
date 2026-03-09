@@ -199,9 +199,18 @@ function getCoverProperty(page: PageObjectResponse, propertyName: string): strin
   return null;
 }
 
+function normalizeContentType(rawType: string): ContentType {
+  const normalized = rawType.trim().toLowerCase();
+  if (normalized === "insight" || normalized === "case") {
+    return "insight";
+  }
+
+  return "daily";
+}
+
 function mapPageToMeta(page: PageObjectResponse): ContentMeta {
   const title = getTitleProperty(page, "title") || "Untitled";
-  const type = (getSelectProperty(page, "type") || "daily") as ContentType;
+  const type = normalizeContentType(getSelectProperty(page, "type") || "daily");
   const publishDate = getDateProperty(page, "publish_date") || page.created_time;
   const rawSlug = getRichTextProperty(page, "slug");
   const fallbackSlug = rawSlug || page.id.replace(/-/g, "");
@@ -278,7 +287,7 @@ async function getPublishedContentMetaUncached(type?: ContentType): Promise<Cont
   const filters: DataSourceQueryParameters["filter"] = {
     and: [
       { property: "status", select: { equals: "Published" } },
-      ...(type ? [{ property: "type", select: { equals: type } }] : []),
+      ...(type === "daily" ? [{ property: "type", select: { equals: "daily" } }] : []),
     ],
   };
 
@@ -289,7 +298,9 @@ async function getPublishedContentMetaUncached(type?: ContentType): Promise<Cont
   });
 
   const pages = results.filter((result): result is PageObjectResponse => isFullPage(result));
-  return sortByPublishDateDesc(pages.map(mapPageToMeta));
+  const normalized = pages.map(mapPageToMeta);
+  const typeFiltered = type ? normalized.filter((item) => item.type === type) : normalized;
+  return sortByPublishDateDesc(typeFiltered);
 }
 
 const getPublishedContentMetaCached = unstable_cache(
@@ -342,20 +353,23 @@ async function getPublishedContentBySlugUncached(
     filter: {
       and: [
         { property: "status", select: { equals: "Published" } },
-        { property: "type", select: { equals: type } },
         { property: "slug", rich_text: { equals: slug } },
       ],
     },
-    page_size: 1,
+    page_size: 10,
   });
 
-  const page = results.find((result): result is PageObjectResponse => isFullPage(result));
+  const page = results
+    .filter((result): result is PageObjectResponse => isFullPage(result))
+    .map(mapPageToMeta)
+    .find((item) => item.type === type);
+
   if (!page) {
     const allContent = await getPublishedContentMeta(type);
     return allContent.find((item) => item.slug === slug) ?? null;
   }
 
-  return mapPageToMeta(page);
+  return page;
 }
 
 const getPublishedContentBySlugCached = unstable_cache(

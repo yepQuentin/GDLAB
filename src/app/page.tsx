@@ -7,7 +7,7 @@ export const revalidate = 300;
 
 export const metadata = {
   title: "首页",
-  description: "Daily Pulse 与 Business Case 精选内容",
+  description: "Daily Pulse 与 Insights 精选内容",
   alternates: {
     canonical: getCanonicalUrl("/"),
   },
@@ -49,20 +49,20 @@ export default async function HomePage() {
       <section className="portal-channel">
         <div className="section-header">
           <div className="section-title-group">
-            <p className="section-kicker">Business Case</p>
-            <h2>商业案例</h2>
+            <p className="section-kicker">Insights</p>
+            <h2>深度分析</h2>
           </div>
-          <Link href="/cases" className="section-link">
+          <Link href="/insights" className="section-link">
             查看全部
           </Link>
         </div>
-        <p className="section-description">最新 2 篇案例解读，聚焦商业与品牌</p>
+        <p className="section-description">最新 2 篇深度分析，聚焦商业与品牌</p>
 
         <div className="content-grid">
-          {payload.caseRecent.length > 0 ? (
-            payload.caseRecent.map((item) => <ContentCard key={item.id} item={item} />)
+          {payload.insightRecent.length > 0 ? (
+            payload.insightRecent.map((item) => <ContentCard key={item.id} item={item} />)
           ) : (
-            <p className="empty-state">暂无 Business Case 内容。</p>
+            <p className="empty-state">暂无 Insights 内容。</p>
           )}
         </div>
       </section>

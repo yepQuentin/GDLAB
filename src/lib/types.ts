@@ -1,4 +1,4 @@
-export type ContentType = "daily" | "case";
+export type ContentType = "daily" | "insight";
 
 export type PublishStatus = "Draft" | "Published";
 
@@ -30,7 +30,7 @@ export interface ContentDetail {
 
 export interface HomePayload {
   dailyRecent: ContentMeta[];
-  caseRecent: ContentMeta[];
+  insightRecent: ContentMeta[];
 }
 
 export interface PaginatedContent {

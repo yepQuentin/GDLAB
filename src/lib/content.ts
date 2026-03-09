@@ -1,7 +1,7 @@
 import {
   paginate,
   parseDailySections,
-  pickLatestCases,
+  pickLatestInsights,
   pickRecentDaily,
   stripMarkdown,
 } from "@/lib/content-utils";
@@ -45,7 +45,7 @@ export async function getHomePayload(): Promise<HomeDataResult> {
 
   const payload: HomePayload = {
     dailyRecent: pickRecentDaily(allPublished),
-    caseRecent: pickLatestCases(allPublished, 2),
+    insightRecent: pickLatestInsights(allPublished, 2),
   };
 
   if (!hasNotionConfiguration()) {
@@ -111,7 +111,7 @@ async function contentMetaToSearchDocument(meta: ContentMeta): Promise<SearchDoc
     tags: meta.tags,
     bodyText: stripMarkdown(markdown),
     publishDate: meta.publishDate,
-    url: meta.type === "daily" ? `/daily/${meta.slug}` : `/cases/${meta.slug}`,
+    url: meta.type === "daily" ? `/daily/${meta.slug}` : `/insights/${meta.slug}`,
   };
 }
 

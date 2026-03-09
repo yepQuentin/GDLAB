@@ -24,9 +24,9 @@ const NAV_ITEMS: NavItem[] = [
     active: (pathname) => pathname.startsWith("/daily"),
   },
   {
-    label: "商业案例",
-    href: "/cases",
-    active: (pathname) => pathname.startsWith("/cases"),
+    label: "深度分析",
+    href: "/insights",
+    active: (pathname) => pathname.startsWith("/insights"),
   },
   {
     label: "搜索",

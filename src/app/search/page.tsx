@@ -7,7 +7,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "搜索",
-  description: "搜索 Daily Pulse 与 Business Case 已发布内容。",
+  description: "搜索 Daily Pulse 与 Insights 已发布内容。",
   alternates: {
     canonical: getCanonicalUrl("/search"),
   },

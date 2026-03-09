@@ -87,10 +87,10 @@ export function SearchClient({ docs }: SearchClientProps) {
           </button>
           <button
             type="button"
-            className={filter === "case" ? "filter-btn active" : "filter-btn"}
-            onClick={() => setFilter("case")}
+            className={filter === "insight" ? "filter-btn active" : "filter-btn"}
+            onClick={() => setFilter("insight")}
           >
-            商业案例
+            深度分析
           </button>
         </div>
       </div>
@@ -102,7 +102,7 @@ export function SearchClient({ docs }: SearchClientProps) {
           filteredDocs.map((doc) => (
             <article key={doc.id} className="content-card">
               <div className="content-card-meta">
-                <span className="content-type">{doc.type === "daily" ? "每日热点" : "商业案例"}</span>
+                <span className="content-type">{doc.type === "daily" ? "每日热点" : "深度分析"}</span>
                 <span>{formatDate(doc.publishDate)}</span>
               </div>
               <h3 className="content-card-title">

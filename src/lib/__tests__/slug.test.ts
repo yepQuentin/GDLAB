@@ -25,9 +25,9 @@ describe("slug", () => {
     expect(resolveContentSlug("daily", "invalid-date", "", "fallback-id")).toBe("fallback-id");
   });
 
-  it("case 保持原 slug 不变", () => {
-    expect(resolveContentSlug("case", "2026-03-05", "case-custom", "fallback-id")).toBe(
-      "case-custom",
+  it("insight 保持原 slug 不变", () => {
+    expect(resolveContentSlug("insight", "2026-03-05", "insight-custom", "fallback-id")).toBe(
+      "insight-custom",
     );
   });
 

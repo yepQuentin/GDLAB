@@ -21,7 +21,7 @@ function formatDate(dateString: string) {
 }
 
 export function ContentCard({ item }: ContentCardProps) {
-  const href = item.type === "daily" ? `/daily/${item.slug}` : `/cases/${item.slug}`;
+  const href = item.type === "daily" ? `/daily/${item.slug}` : `/insights/${item.slug}`;
 
   return (
     <article className="content-card">

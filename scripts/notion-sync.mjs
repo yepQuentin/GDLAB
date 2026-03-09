@@ -20,7 +20,7 @@ const SNAPSHOT_VERSION = 1;
 const STATE_VERSION = 1;
 const DEFAULT_REVALIDATE_URL = "http://127.0.0.1:3000/api/internal/revalidate";
 const DEFAULT_RETENTION_DAYS = 90;
-const SYNC_CONTENT_TYPES = new Set(["daily", "case"]);
+const SYNC_CONTENT_TYPES = new Set(["daily", "insight", "case"]);
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -52,6 +52,15 @@ function getRichTextProperty(page, propertyName) {
   }
 
   return property.rich_text.map((item) => item.plain_text).join("").trim();
+}
+
+function normalizeContentType(rawType) {
+  const normalized = String(rawType || "").trim().toLowerCase();
+  if (normalized === "insight" || normalized === "case") {
+    return "insight";
+  }
+
+  return "daily";
 }
 
 function resolveDataSourceId(rawDatabaseId) {
@@ -98,10 +107,12 @@ async function listAllPublishedPages(client, dataSourceId) {
         continue;
       }
 
-      const type = getSelectProperty(result, "type");
-      if (!SYNC_CONTENT_TYPES.has(type)) {
+      const rawType = getSelectProperty(result, "type");
+      if (!SYNC_CONTENT_TYPES.has(rawType)) {
         continue;
       }
+
+      const type = normalizeContentType(rawType);
 
       const slug = getRichTextProperty(result, "slug") || result.id.replace(/-/g, "");
       pages.push({

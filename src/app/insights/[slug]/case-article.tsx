@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { PodcastAudioPlayer } from "@/components/podcast-audio-player";
-import { CaseOutlineNav } from "@/app/cases/[slug]/case-outline-nav";
+import { CaseOutlineNav } from "@/app/insights/[slug]/case-outline-nav";
 import {
   resolveCaseVideoPresentation,
   type CaseAudioBlock,
@@ -293,7 +293,7 @@ function CaseVideo({ block }: { block: CaseVideoBlock }) {
         <div className={styles.embedShell}>
           <iframe
             src={presentation.embedUrl}
-            title={block.caption || "Case 视频"}
+            title={block.caption || "Insights 视频"}
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -492,7 +492,7 @@ function CaseArticleLayout({
               </section>
             ))
           ) : !hasIntro ? (
-            <CaseFailurePanel title="正文为空" description="这篇 Case 文章已经发布，但正文还没有可渲染的内容块。" />
+            <CaseFailurePanel title="正文为空" description="这篇 Insights 文章已经发布，但正文还没有可渲染的内容块。" />
           ) : null}
         </div>
       </div>
@@ -501,29 +501,8 @@ function CaseArticleLayout({
 }
 
 export async function CaseArticleBody({ pageId }: CaseArticleBodyProps) {
-  try {
-    const state = await getCaseArticleState(pageId);
-
-    if (state.status === "unavailable") {
-      return (
-        <CaseFailureState
-          title="正文暂不可用"
-          description="当前文章元数据可访问，但正文内容还没有成功拉取。请稍后重试。"
-        />
-      );
-    }
-
-    if (state.status === "empty") {
-      return (
-        <CaseFailureState
-          title="正文为空"
-          description="这篇 Case 文章已经发布，但正文还没有可渲染的内容块。"
-        />
-      );
-    }
-
-    return <CaseArticleLayout {...state} />;
-  } catch {
+  const state = await getCaseArticleState(pageId).catch(() => null);
+  if (!state) {
     return (
       <CaseFailureState
         title="正文加载失败"
@@ -531,6 +510,26 @@ export async function CaseArticleBody({ pageId }: CaseArticleBodyProps) {
       />
     );
   }
+
+  if (state.status === "unavailable") {
+    return (
+      <CaseFailureState
+        title="正文暂不可用"
+        description="当前文章元数据可访问，但正文内容还没有成功拉取。请稍后重试。"
+      />
+    );
+  }
+
+  if (state.status === "empty") {
+    return (
+      <CaseFailureState
+        title="正文为空"
+        description="这篇 Insights 文章已经发布，但正文还没有可渲染的内容块。"
+      />
+    );
+  }
+
+  return <CaseArticleLayout {...state} />;
 }
 
 export function CaseArticleSkeleton() {
