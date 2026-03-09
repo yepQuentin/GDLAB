@@ -15,12 +15,61 @@ import {
   isFullBlock,
   isFullPage,
 } from "@notionhq/client";
+import { NotionToMarkdown } from "notion-to-md";
 
 const SNAPSHOT_VERSION = 1;
 const STATE_VERSION = 1;
 const DEFAULT_REVALIDATE_URL = "http://127.0.0.1:3000/api/internal/revalidate";
 const DEFAULT_RETENTION_DAYS = 90;
 const SYNC_CONTENT_TYPES = new Set(["daily", "insight", "case"]);
+
+function formatErrorMessage(error) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
+function buildNotionAudioProxyUrl(rawUrl, explicitBlockId) {
+  if (!/^https?:\/\//i.test(rawUrl)) {
+    return rawUrl;
+  }
+
+  const parsed = new URL(rawUrl);
+  if (parsed.pathname === "/api/notion-audio") {
+    return rawUrl;
+  }
+
+  const query = new URLSearchParams({ src: rawUrl });
+  if (explicitBlockId) {
+    query.set("blockId", explicitBlockId);
+  }
+
+  return `/api/notion-audio?${query.toString()}`;
+}
+
+function configureNotionToMarkdown(notionToMarkdown) {
+  notionToMarkdown.setCustomTransformer("audio", async (rawBlock) => {
+    const block = rawBlock;
+    if (block.type !== "audio" || !block.audio) {
+      return false;
+    }
+
+    const audioBlock = block.audio;
+    const sourceUrl =
+      audioBlock.type === "external" ? audioBlock.external?.url : audioBlock.file?.url;
+    if (!sourceUrl) {
+      return "";
+    }
+
+    const caption = audioBlock.caption.map((item) => item.plain_text).join("").trim();
+    const linkText = caption || "🎧 今日播客音频";
+    const proxiedUrl = buildNotionAudioProxyUrl(sourceUrl, block.id);
+
+    return `[${linkText}](${proxiedUrl})`;
+  });
+}
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -166,13 +215,24 @@ async function fetchBlockTree(client, blockId) {
   );
 }
 
-async function buildSnapshot(client, dataSourceId, pageSummary) {
+async function buildPageMarkdown(notionToMarkdown, pageId) {
+  try {
+    const markdownBlocks = await notionToMarkdown.pageToMarkdown(pageId);
+    return notionToMarkdown.toMarkdownString(markdownBlocks).parent;
+  } catch (error) {
+    console.warn(`[notion-sync] markdown snapshot skipped for ${pageId}: ${formatErrorMessage(error)}`);
+    return undefined;
+  }
+}
+
+async function buildSnapshot(client, notionToMarkdown, dataSourceId, pageSummary) {
   const pageResponse = await client.pages.retrieve({ page_id: pageSummary.page_id });
   if (!isFullPage(pageResponse)) {
     throw new Error(`Unable to retrieve full page: ${pageSummary.page_id}`);
   }
 
   const blocks = await fetchBlockTree(client, pageSummary.page_id);
+  const markdown = await buildPageMarkdown(notionToMarkdown, pageSummary.page_id);
 
   return {
     snapshot_version: SNAPSHOT_VERSION,
@@ -182,8 +242,11 @@ async function buildSnapshot(client, dataSourceId, pageSummary) {
     type: pageSummary.type,
     slug: pageSummary.slug,
     last_edited_time: pageSummary.last_edited_time,
+    created_time: pageResponse.created_time,
+    cover: pageResponse.cover,
     properties: pageResponse.properties,
     blocks,
+    ...(typeof markdown === "string" ? { markdown } : {}),
   };
 }
 
@@ -288,6 +351,8 @@ async function main() {
   await mkdir(snapshotDir, { recursive: true });
 
   const notionClient = new Client({ auth: notionToken });
+  const notionToMarkdown = new NotionToMarkdown({ notionClient });
+  configureNotionToMarkdown(notionToMarkdown);
   const previousState = normalizeState(await readJsonIfExists(stateFilePath, buildEmptyState()));
   const pages = await listAllPublishedPages(notionClient, dataSourceId);
 
@@ -314,7 +379,7 @@ async function main() {
   const removedPageIds = Object.keys(previousState.pages).filter((pageId) => !nextPagesState[pageId]);
 
   for (const page of changedPages) {
-    const snapshot = await buildSnapshot(notionClient, dataSourceId, page);
+    const snapshot = await buildSnapshot(notionClient, notionToMarkdown, dataSourceId, page);
     await writeSnapshot(snapshotDir, snapshot);
     console.log(`[notion-sync] snapshot written for ${page.type}:${page.slug} (${page.page_id})`);
   }

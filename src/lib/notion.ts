@@ -15,6 +15,11 @@ import { NotionToMarkdown } from "notion-to-md";
 import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/lib/cache-config";
 import type { ContentMeta, ContentType, PublishStatus } from "@/lib/types";
 import { sortByPublishDateDesc } from "@/lib/content-utils";
+import {
+  getSnapshotContentMetaBySlug,
+  getSnapshotContentMetaList,
+  getSnapshotMarkdownByPageId,
+} from "@/lib/notion-snapshot";
 import { extractDateFromDailySlug, resolveContentSlug } from "@/lib/slug";
 import {
   buildNotionAudioProxyUrl,
@@ -131,6 +136,13 @@ function rewriteSourceLinkParagraphs(markdown: string): string {
       /(^|\n)(原文链接|来源|source)\s*[：:]\s*(https?:\/\/[^\s)]+)(?=\n|$)/gim,
       (_match, leadingBreak: string, _label: string, href: string) => `${leadingBreak}[原文链接](${href})`,
     );
+}
+
+function finalizeMarkdown(rawMarkdown: string): string {
+  const bookmarkRewrittenMarkdown = rewriteBookmarkLabels(rawMarkdown);
+  const sourceLinkRewrittenMarkdown = rewriteSourceLinkParagraphs(bookmarkRewrittenMarkdown);
+  const audioRewrittenMarkdown = rewriteMarkdownAudioUrlsWithProxy(sourceLinkRewrittenMarkdown);
+  return rewriteMarkdownImageUrlsWithProxy(audioRewrittenMarkdown);
 }
 
 function getTitleProperty(page: PageObjectResponse, propertyName: string): string {
@@ -284,6 +296,11 @@ async function queryDataSource(params: DataSourceQueryParameters): Promise<DataS
 }
 
 async function getPublishedContentMetaUncached(type?: ContentType): Promise<ContentMeta[]> {
+  const snapshotMeta = await getSnapshotContentMetaList(type);
+  if (snapshotMeta) {
+    return snapshotMeta;
+  }
+
   const filters: DataSourceQueryParameters["filter"] = {
     and: [
       { property: "status", select: { equals: "Published" } },
@@ -324,6 +341,11 @@ async function getPublishedContentBySlugUncached(
   type: ContentType,
   slug: string,
 ): Promise<ContentMeta | null> {
+  const snapshotMeta = await getSnapshotContentMetaBySlug(type, slug);
+  if (snapshotMeta) {
+    return snapshotMeta;
+  }
+
   if (type === "daily") {
     const dailyDate = extractDateFromDailySlug(slug);
     if (dailyDate) {
@@ -394,6 +416,11 @@ export async function getPublishedContentBySlug(
 
 const getPageMarkdownByIdCached = unstable_cache(
   async (pageId: string): Promise<string> => {
+    const snapshotMarkdown = await getSnapshotMarkdownByPageId(pageId);
+    if (snapshotMarkdown !== null) {
+      return finalizeMarkdown(snapshotMarkdown);
+    }
+
     if (!notionToMarkdown) {
       return "";
     }
@@ -406,11 +433,7 @@ const getPageMarkdownByIdCached = unstable_cache(
             `pageToMarkdown:${pageId}`,
           )
         : await notionToMarkdown.pageToMarkdown(pageId);
-      const rawMarkdown = notionToMarkdown.toMarkdownString(markdownBlocks).parent;
-      const bookmarkRewrittenMarkdown = rewriteBookmarkLabels(rawMarkdown);
-      const sourceLinkRewrittenMarkdown = rewriteSourceLinkParagraphs(bookmarkRewrittenMarkdown);
-      const audioRewrittenMarkdown = rewriteMarkdownAudioUrlsWithProxy(sourceLinkRewrittenMarkdown);
-      return rewriteMarkdownImageUrlsWithProxy(audioRewrittenMarkdown);
+      return finalizeMarkdown(notionToMarkdown.toMarkdownString(markdownBlocks).parent);
     } catch (error) {
       if (isProductionBuildPhase()) {
         warnBuildTimeNotionFailure(`pageToMarkdown:${pageId}`, error);

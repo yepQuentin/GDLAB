@@ -8,6 +8,7 @@ import type {
 import { unstable_cache } from "next/cache";
 
 import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/lib/cache-config";
+import { getSnapshotBlocksByPageId, type NotionSnapshotBlock } from "@/lib/notion-snapshot";
 import {
   buildCaseHeadingId,
   type CaseAudioBlock,
@@ -149,6 +150,262 @@ function mapCalloutIcon(
       return icon.external?.url ? { type: "image", value: icon.external.url } : null;
     case "file":
       return icon.file?.url ? { type: "image", value: icon.file.url } : null;
+    default:
+      return null;
+  }
+}
+
+function getSnapshotChildren(block: NotionSnapshotBlock): NotionSnapshotBlock[] {
+  return Array.isArray(block.children) ? block.children : [];
+}
+
+function mapSnapshotTableBlock(block: Extract<NotionSnapshotBlock, { type: "table" }>): CaseTableBlock {
+  const rows = getSnapshotChildren(block);
+  const tableRows: CaseTableRow[] = rows
+    .filter((row): row is TableRowBlockObjectResponse => row.type === "table_row")
+    .map((row) => ({
+      cells: row.table_row.cells.map((cell) => mapRichText(cell)),
+    }));
+
+  return {
+    id: block.id,
+    type: "table",
+    rows: tableRows,
+    hasColumnHeader: block.table.has_column_header,
+    hasRowHeader: block.table.has_row_header,
+  };
+}
+
+function mapSnapshotBlocksToCaseBlocks(blocks: NotionSnapshotBlock[]): CaseBlock[] {
+  return blocks
+    .map((block) => mapSnapshotBlockToCaseBlock(block))
+    .filter((block): block is CaseBlock => block !== null);
+}
+
+function mapSnapshotBlockToCaseBlock(block: NotionSnapshotBlock): CaseBlock | null {
+  switch (block.type) {
+    case "paragraph": {
+      const richText = mapRichText(block.paragraph.rich_text);
+      if (richText.length === 0) {
+        return null;
+      }
+
+      return {
+        id: block.id,
+        type: "paragraph",
+        richText,
+      };
+    }
+
+    case "heading_1":
+    case "heading_2":
+    case "heading_3": {
+      const richTextSource =
+        block.type === "heading_1"
+          ? block.heading_1.rich_text
+          : block.type === "heading_2"
+            ? block.heading_2.rich_text
+            : block.heading_3.rich_text;
+      const richText = mapRichText(richTextSource);
+      if (richText.length === 0) {
+        return null;
+      }
+
+      const title = getPlainText(richTextSource) || block.id;
+      return {
+        id: block.id,
+        type: "heading",
+        level: block.type === "heading_1" ? 1 : block.type === "heading_2" ? 2 : 3,
+        anchorId: buildCaseHeadingId(title, block.id.replace(/-/g, "").slice(0, 8)),
+        richText,
+      };
+    }
+
+    case "bulleted_list_item":
+    case "numbered_list_item": {
+      const richText =
+        block.type === "bulleted_list_item"
+          ? mapRichText(block.bulleted_list_item.rich_text)
+          : mapRichText(block.numbered_list_item.rich_text);
+      const children = mapSnapshotBlocksToCaseBlocks(getSnapshotChildren(block));
+
+      if (richText.length === 0 && children.length === 0) {
+        return null;
+      }
+
+      return {
+        id: block.id,
+        type: block.type,
+        richText,
+        children,
+      };
+    }
+
+    case "quote": {
+      const quoteBlock: CaseQuoteBlock = {
+        id: block.id,
+        type: "quote",
+        richText: mapRichText(block.quote.rich_text),
+        children: mapSnapshotBlocksToCaseBlocks(getSnapshotChildren(block)),
+      };
+
+      if (quoteBlock.richText.length === 0 && quoteBlock.children.length === 0) {
+        return null;
+      }
+
+      return quoteBlock;
+    }
+
+    case "callout": {
+      const calloutBlock: CaseCalloutBlock = {
+        id: block.id,
+        type: "callout",
+        richText: mapRichText(block.callout.rich_text),
+        icon: mapCalloutIcon(block.callout.icon),
+        children: mapSnapshotBlocksToCaseBlocks(getSnapshotChildren(block)),
+      };
+
+      if (calloutBlock.richText.length === 0 && calloutBlock.children.length === 0) {
+        return null;
+      }
+
+      return calloutBlock;
+    }
+
+    case "divider":
+      return {
+        id: block.id,
+        type: "divider",
+      };
+
+    case "image": {
+      const sourceUrl = getMediaUrl(block.image);
+      if (!sourceUrl) {
+        return null;
+      }
+
+      const caption = getPlainText(block.image.caption);
+      const label = caption || extractFileLabel(sourceUrl, "插图");
+      return {
+        id: block.id,
+        type: "image",
+        src: buildCaseImageProxyUrl(sourceUrl, block.id),
+        alt: label,
+        caption,
+      };
+    }
+
+    case "video": {
+      const sourceUrl = getMediaUrl(block.video);
+      if (!sourceUrl) {
+        return null;
+      }
+
+      return {
+        id: block.id,
+        type: "video",
+        src: sourceUrl,
+        caption: getPlainText(block.video.caption),
+      };
+    }
+
+    case "audio": {
+      const sourceUrl = getMediaUrl(block.audio);
+      if (!sourceUrl) {
+        return null;
+      }
+
+      const title = getPlainText(block.audio.caption) || extractFileLabel(sourceUrl, "音频");
+      return {
+        id: block.id,
+        type: "audio",
+        src: buildNotionAudioProxyUrl(sourceUrl, block.id),
+        title,
+      };
+    }
+
+    case "file":
+    case "pdf": {
+      const media = block.type === "file" ? block.file : block.pdf;
+      const sourceUrl = getMediaUrl(media);
+      if (!sourceUrl) {
+        return null;
+      }
+
+      const caption = getPlainText(media.caption);
+      return {
+        id: block.id,
+        type: block.type,
+        src: sourceUrl,
+        title:
+          caption || extractFileLabel(sourceUrl, block.type === "pdf" ? "附件 PDF" : "附件文件"),
+        caption,
+      };
+    }
+
+    case "bookmark":
+    case "embed":
+    case "link_preview": {
+      const sourceUrl =
+        block.type === "bookmark"
+          ? block.bookmark.url
+          : block.type === "embed"
+            ? block.embed.url
+            : block.link_preview.url;
+      if (!sourceUrl) {
+        return null;
+      }
+
+      const title =
+        (
+          block.type === "bookmark"
+            ? getPlainText(block.bookmark.caption)
+            : block.type === "embed"
+              ? getPlainText(block.embed.caption)
+              : ""
+        ) || extractHostLabel(sourceUrl, block.type);
+
+      return {
+        id: block.id,
+        type: block.type,
+        url: sourceUrl,
+        title,
+      };
+    }
+
+    case "code": {
+      const codeBlock: CaseCodeBlock = {
+        id: block.id,
+        type: "code",
+        language: block.code.language || "plain text",
+        caption: getPlainText(block.code.caption),
+        code: block.code.rich_text.map((item) => item.plain_text).join(""),
+      };
+
+      if (!codeBlock.code.trim() && !codeBlock.caption) {
+        return null;
+      }
+
+      return codeBlock;
+    }
+
+    case "equation":
+      return {
+        id: block.id,
+        type: "paragraph",
+        richText: [
+          {
+            type: "equation",
+            text: block.equation.expression,
+            href: null,
+            annotations: DEFAULT_ANNOTATIONS,
+          },
+        ],
+      };
+
+    case "table":
+      return mapSnapshotTableBlock(block);
+
     default:
       return null;
   }
@@ -531,7 +788,14 @@ async function mapBlockToCaseBlock(block: BlockObjectResponse): Promise<CaseBloc
 }
 
 const getCaseBlocksByPageIdCached = unstable_cache(
-  async (pageId: string): Promise<CaseBlock[]> => fetchCaseBlocksWithRetry(pageId),
+  async (pageId: string): Promise<CaseBlock[]> => {
+    const snapshotBlocks = await getSnapshotBlocksByPageId(pageId);
+    if (snapshotBlocks) {
+      return mapSnapshotBlocksToCaseBlocks(snapshotBlocks);
+    }
+
+    return fetchCaseBlocksWithRetry(pageId);
+  },
   ["case-block-tree-v1"],
   {
     revalidate: CASE_CONTENT_REVALIDATE_SECONDS,
