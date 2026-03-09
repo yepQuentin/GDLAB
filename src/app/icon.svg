@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Goer Dynamics icon">
+  <rect width="512" height="512" fill="#ececec" />
+  <text
+    x="26"
+    y="224"
+    fill="#000000"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="108"
+    font-weight="700"
+    letter-spacing="-2"
+  >
+    Goer
+  </text>
+  <text
+    x="26"
+    y="338"
+    fill="#000000"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="108"
+    font-weight="700"
+    letter-spacing="-2"
+  >
+    Dynamics
+  </text>
+</svg>

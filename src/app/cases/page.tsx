@@ -1,0 +1,52 @@
+import type { Metadata } from "next";
+
+import { ContentCard } from "@/components/content-card";
+import { Pagination } from "@/components/pagination";
+import { getCanonicalUrl, getContentList } from "@/lib/content";
+import { parsePageNumber } from "@/lib/paging";
+
+export const revalidate = 600;
+
+export const metadata: Metadata = {
+  title: "Business Case",
+  description: "Business Case 历史全集合页，展示所有已发布商业解读。",
+  alternates: {
+    canonical: getCanonicalUrl("/cases"),
+  },
+};
+
+interface CaseListPageProps {
+  searchParams?: Promise<{ page?: string }>;
+}
+
+export default async function CaseListPage({ searchParams }: CaseListPageProps) {
+  const pageParam = (await searchParams)?.page;
+  const page = parsePageNumber(pageParam);
+  const { payload, hint } = await getContentList("case", page);
+
+  return (
+    <div className="page-stack">
+      <section className="section-block section-block-no-divider">
+        <div className="section-header">
+          <div className="section-title-group">
+            <p className="section-kicker">Business Case</p>
+            <h1>商业案例</h1>
+          </div>
+        </div>
+        <p className="section-description">查看所有已发布的 Business Case 深度内容。</p>
+
+        {hint ? <p className="config-hint">{hint}</p> : null}
+
+        <div className="content-grid">
+          {payload.items.length > 0 ? (
+            payload.items.map((item) => <ContentCard key={item.id} item={item} />)
+          ) : (
+            <p className="empty-state">暂无 Business Case 历史内容。</p>
+          )}
+        </div>
+
+        <Pagination currentPage={payload.page} totalPages={payload.totalPages} pathname="/cases" />
+      </section>
+    </div>
+  );
+}
