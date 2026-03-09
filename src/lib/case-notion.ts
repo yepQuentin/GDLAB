@@ -7,6 +7,7 @@ import type {
 } from "@notionhq/client/build/src/api-endpoints";
 import { unstable_cache } from "next/cache";
 
+import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/lib/cache-config";
 import {
   buildCaseHeadingId,
   type CaseAudioBlock,
@@ -31,7 +32,7 @@ import { buildNotionAudioProxyUrl } from "@/lib/notion-audio-proxy";
 
 const notionToken = process.env.NOTION_TOKEN;
 const notionClient = notionToken ? new Client({ auth: notionToken }) : null;
-const CASE_CONTENT_REVALIDATE_SECONDS = 1800;
+const CASE_CONTENT_REVALIDATE_SECONDS = CACHE_REVALIDATE_SECONDS;
 const CASE_FETCH_CONCURRENCY = 4;
 const CASE_FETCH_TIMEOUT_MS = 12000;
 const CASE_FETCH_RETRY_ATTEMPTS = 2;
@@ -532,7 +533,10 @@ async function mapBlockToCaseBlock(block: BlockObjectResponse): Promise<CaseBloc
 const getCaseBlocksByPageIdCached = unstable_cache(
   async (pageId: string): Promise<CaseBlock[]> => fetchCaseBlocksWithRetry(pageId),
   ["case-block-tree-v1"],
-  { revalidate: CASE_CONTENT_REVALIDATE_SECONDS },
+  {
+    revalidate: CASE_CONTENT_REVALIDATE_SECONDS,
+    tags: [CACHE_TAGS.CASE_BLOCKS],
+  },
 );
 
 export async function getCaseBlocksByPageId(pageId: string): Promise<CaseBlock[]> {

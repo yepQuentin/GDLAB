@@ -9,7 +9,7 @@ import {
   getPublishedContentSlugs,
 } from "@/lib/content";
 
-export const revalidate = 1800;
+export const revalidate = 300;
 
 interface DailyDetailPageProps {
   params: Promise<{ slug: string }>;

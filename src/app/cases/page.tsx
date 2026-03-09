@@ -5,7 +5,7 @@ import { Pagination } from "@/components/pagination";
 import { getCanonicalUrl, getContentList } from "@/lib/content";
 import { parsePageNumber } from "@/lib/paging";
 
-export const revalidate = 600;
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Business Case",

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SearchClient } from "@/components/search-client";
 import { buildSearchIndex, getCanonicalUrl } from "@/lib/content";
 
-export const revalidate = 600;
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "搜索",

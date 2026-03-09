@@ -1,0 +1,13 @@
+[Unit]
+Description=GDLAB Notion snapshot sync
+After=network-online.target gdlab.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/gdlab
+EnvironmentFile=/etc/gdlab.env
+ExecStart=/usr/bin/flock -n /run/gdlab-notion-sync.lock /usr/bin/node /opt/gdlab/scripts/notion-sync.mjs
+Nice=10

@@ -12,6 +12,7 @@ import type {
 import { unstable_cache } from "next/cache";
 import { NotionToMarkdown } from "notion-to-md";
 
+import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/lib/cache-config";
 import type { ContentMeta, ContentType, PublishStatus } from "@/lib/types";
 import { sortByPublishDateDesc } from "@/lib/content-utils";
 import { extractDateFromDailySlug, resolveContentSlug } from "@/lib/slug";
@@ -30,8 +31,8 @@ const notionToMarkdown = notionClient ? new NotionToMarkdown({ notionClient }) :
 
 type DataSourceQueryParameters = Omit<QueryDataSourceParameters, "data_source_id">;
 type DataSourceQueryResults = QueryDataSourceResponse["results"];
-const CONTENT_META_REVALIDATE_SECONDS = 600;
-const CONTENT_MARKDOWN_REVALIDATE_SECONDS = 1800;
+const CONTENT_META_REVALIDATE_SECONDS = CACHE_REVALIDATE_SECONDS;
+const CONTENT_MARKDOWN_REVALIDATE_SECONDS = CACHE_REVALIDATE_SECONDS;
 const BUILD_TIME_MARKDOWN_TIMEOUT_MS = 15000;
 const QUERY_DATASOURCE_RETRY_ATTEMPTS = 3;
 const buildTimeNotionWarnings = new Set<string>();
@@ -294,7 +295,10 @@ async function getPublishedContentMetaUncached(type?: ContentType): Promise<Cont
 const getPublishedContentMetaCached = unstable_cache(
   getPublishedContentMetaUncached,
   ["notion-published-content-meta-v2"],
-  { revalidate: CONTENT_META_REVALIDATE_SECONDS },
+  {
+    revalidate: CONTENT_META_REVALIDATE_SECONDS,
+    tags: [CACHE_TAGS.CONTENT_META],
+  },
 );
 
 export async function getPublishedContentMeta(type?: ContentType): Promise<ContentMeta[]> {
@@ -357,7 +361,10 @@ async function getPublishedContentBySlugUncached(
 const getPublishedContentBySlugCached = unstable_cache(
   getPublishedContentBySlugUncached,
   ["notion-published-content-by-slug-v2"],
-  { revalidate: CONTENT_META_REVALIDATE_SECONDS },
+  {
+    revalidate: CONTENT_META_REVALIDATE_SECONDS,
+    tags: [CACHE_TAGS.CONTENT_META],
+  },
 );
 
 export async function getPublishedContentBySlug(
@@ -400,7 +407,10 @@ const getPageMarkdownByIdCached = unstable_cache(
     }
   },
   ["notion-page-markdown-v3"],
-  { revalidate: CONTENT_MARKDOWN_REVALIDATE_SECONDS },
+  {
+    revalidate: CONTENT_MARKDOWN_REVALIDATE_SECONDS,
+    tags: [CACHE_TAGS.CONTENT_MARKDOWN],
+  },
 );
 
 export async function getPageMarkdownById(pageId: string): Promise<string> {

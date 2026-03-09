@@ -6,6 +6,7 @@ import {
   stripMarkdown,
 } from "@/lib/content-utils";
 import { unstable_cache } from "next/cache";
+import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/lib/cache-config";
 import {
   getNotionConfigurationHint,
   getPageMarkdownById,
@@ -23,7 +24,7 @@ import type {
 } from "@/lib/types";
 
 const DEFAULT_PAGE_SIZE = 10;
-const SEARCH_INDEX_REVALIDATE_SECONDS = 600;
+const SEARCH_INDEX_REVALIDATE_SECONDS = CACHE_REVALIDATE_SECONDS;
 
 function isProductionBuildPhase(): boolean {
   return process.env.npm_lifecycle_event === "build";
@@ -129,7 +130,10 @@ async function buildSearchIndexUncached(): Promise<{ docs: SearchDocument[]; hin
 const buildSearchIndexCached = unstable_cache(
   buildSearchIndexUncached,
   ["content-search-index-v2"],
-  { revalidate: SEARCH_INDEX_REVALIDATE_SECONDS },
+  {
+    revalidate: SEARCH_INDEX_REVALIDATE_SECONDS,
+    tags: [CACHE_TAGS.SEARCH_INDEX],
+  },
 );
 
 export async function buildSearchIndex(): Promise<{ docs: SearchDocument[]; hint?: string }> {

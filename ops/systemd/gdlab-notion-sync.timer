@@ -1,0 +1,10 @@
+[Unit]
+Description=Run GDLAB Notion sync every 5 minutes
+
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+Unit=gdlab-notion-sync.service
+
+[Install]
+WantedBy=timers.target

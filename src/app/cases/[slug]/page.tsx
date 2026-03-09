@@ -13,7 +13,7 @@ import { buildNotionImageProxyUrl } from "@/lib/notion-image-proxy";
 
 import styles from "./case-detail.module.css";
 
-export const revalidate = 1800;
+export const revalidate = 300;
 
 interface CaseDetailPageProps {
   params: Promise<{ slug: string }>;

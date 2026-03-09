@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ContentCard } from "@/components/content-card";
 import { getCanonicalUrl, getHomePayload } from "@/lib/content";
 
-export const revalidate = 600;
+export const revalidate = 300;
 
 export const metadata = {
   title: "首页",

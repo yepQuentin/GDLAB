@@ -12,6 +12,7 @@ import {
   type CaseBlock,
   type CaseContentModel,
 } from "@/lib/case-content";
+import { CACHE_REVALIDATE_SECONDS } from "@/lib/cache-config";
 import { getCaseBlocksByPageId } from "@/lib/case-notion";
 
 import {
@@ -21,7 +22,7 @@ import {
   estimateCaseReadMinutes,
 } from "./case-reading-stats";
 
-const CASE_ARTICLE_STATE_REVALIDATE_SECONDS = 1800;
+const CASE_ARTICLE_STATE_REVALIDATE_SECONDS = CACHE_REVALIDATE_SECONDS;
 const CASE_ARTICLE_SNAPSHOT_VERSION = 1;
 const CASE_ARTICLE_SNAPSHOT_DIR = path.join(
   process.cwd(),
