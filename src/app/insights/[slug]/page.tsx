@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
@@ -14,6 +14,13 @@ import { buildNotionImageProxyUrl } from "@/lib/notion-image-proxy";
 import styles from "./case-detail.module.css";
 
 export const revalidate = 300;
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 interface InsightDetailPageProps {
   params: Promise<{ slug: string }>;
