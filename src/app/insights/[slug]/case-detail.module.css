@@ -17,9 +17,10 @@
   position: relative;
   display: grid;
   width: 100%;
-  overflow-x: hidden;
-  overflow-x: clip;
-  overscroll-behavior-x: none;
+  max-width: 100%;
+  min-width: 0;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   gap: clamp(1.35rem, 2.8vw, 2.2rem);
   color: var(--case-ink);
 }
@@ -404,6 +405,7 @@
 
 .sectionBody {
   display: grid;
+  min-width: 0;
 }
 
 .paragraph,
@@ -415,6 +417,8 @@
   font-family: var(--font-sans);
   font-size: clamp(1rem, 0.22vw + 0.98rem, 1.06rem);
   line-height: 1.9;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .paragraph {
