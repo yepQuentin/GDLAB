@@ -10,6 +10,7 @@ import {
   getContentMetaBySlug,
 } from "@/lib/content";
 import { buildNotionImageProxyUrl } from "@/lib/notion-image-proxy";
+import { MobileGestureGuard } from "@/app/insights/[slug]/mobile-gesture-guard";
 
 import styles from "./case-detail.module.css";
 
@@ -72,6 +73,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
 
   return (
     <article className={styles.page}>
+      <MobileGestureGuard />
       <header className={`${styles.hero} ${coverUrl ? "" : styles.heroTextOnly}`.trim()}>
         <div className={styles.heroBody}>
           <p className={styles.kicker}>Insights</p>

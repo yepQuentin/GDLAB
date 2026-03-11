@@ -17,6 +17,9 @@
   position: relative;
   display: grid;
   width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
   gap: clamp(1.35rem, 2.8vw, 2.2rem);
   color: var(--case-ink);
 }
@@ -583,6 +586,7 @@
   width: min(100%, var(--case-media-width));
   margin: 1.5rem auto;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   border: 1px solid rgba(29, 29, 31, 0.08);
   border-radius: 16px;
   background: #ffffff;
@@ -732,6 +736,7 @@
   margin: 0;
   padding: 1rem 1.05rem 1.1rem;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   font-size: 0.9rem;
   line-height: 1.7;
 }

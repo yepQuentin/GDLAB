@@ -1401,12 +1401,23 @@ a {
       text-wrap: auto;
     }
 
+    /* Keep "(外部来源: ...)" rows from being stretched by paragraph justification on mobile. */
+    body:has(.article-page .daily-sections-grid)
+      .daily-item-text
+      .markdown-content
+      p:has(> em:first-child):has(> a[href]):has(> em:last-child) {
+      text-align: left;
+      text-align-last: auto;
+      overflow-wrap: anywhere;
+    }
+
     body:has(.article-page .daily-sections-grid) .daily-intro .podcast-track-shell {
       --daily-track-height: 22px;
       --daily-thumb-size: 22px;
       --podcast-track-height: var(--daily-track-height);
       --podcast-thumb-size: var(--daily-thumb-size);
     }
+
   }
 
   @media (min-width: 1024px) {
