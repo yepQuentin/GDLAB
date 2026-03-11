@@ -25,6 +25,17 @@ describe("notion-image-proxy", () => {
     expect(parsed.searchParams.get("blockId")).toBe("73d4a8f9-c0b2-4d7b-b1c6-f5e4d3a2b1c0");
   });
 
+  it("prefers explicit block id when provided", () => {
+    const sourceUrl =
+      "https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/page-id/file-id/demo.png";
+    const proxyUrl = buildNotionImageProxyUrl(sourceUrl, "31e00aeb-fef7-80af-b938-efb88269940a");
+    const parsed = new URL(proxyUrl, "http://localhost:3000");
+
+    expect(parsed.pathname).toBe("/api/notion-image");
+    expect(parsed.searchParams.get("src")).toBe(sourceUrl);
+    expect(parsed.searchParams.get("blockId")).toBe("31e00aeb-fef7-80af-b938-efb88269940a");
+  });
+
   it("keeps relative urls unchanged", () => {
     expect(buildNotionImageProxyUrl("/images/foo.png")).toBe("/images/foo.png");
   });
@@ -43,4 +54,3 @@ describe("notion-image-proxy", () => {
     expect(result).toContain("![two](/local-image.png)");
   });
 });
-

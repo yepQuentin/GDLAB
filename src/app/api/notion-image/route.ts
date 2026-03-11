@@ -142,21 +142,15 @@ export async function GET(request: Request) {
   const explicitBlockId = normalizeNotionId(searchParams.get("blockId"));
   const derivedBlockId = src ? extractNotionBlockIdFromUrl(src) : null;
   const blockId = explicitBlockId ?? derivedBlockId;
+  const sourceUrl = srcUrl?.toString() ?? null;
 
   if (!srcUrl && !blockId) {
     return NextResponse.json({ error: "Invalid image source." }, { status: 400 });
   }
 
-  const cached = await buildCachedImageResponse(blockId, srcUrl?.toString() ?? null);
+  const cached = await buildCachedImageResponse(blockId, sourceUrl);
   if (cached) {
     return cached;
-  }
-
-  if (srcUrl) {
-    const cachedResponse = await fetchAndCacheImageResponse(srcUrl.toString(), blockId);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
   }
 
   if (blockId) {
@@ -166,6 +160,13 @@ export async function GET(request: Request) {
       if (cachedResponse) {
         return cachedResponse;
       }
+    }
+  }
+
+  if (sourceUrl) {
+    const cachedResponse = await fetchAndCacheImageResponse(sourceUrl, blockId);
+    if (cachedResponse) {
+      return cachedResponse;
     }
   }
 

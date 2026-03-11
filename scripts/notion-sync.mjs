@@ -63,7 +63,44 @@ function buildNotionAudioProxyUrl(rawUrl, explicitBlockId) {
   return `/api/notion-audio?${query.toString()}`;
 }
 
+function buildNotionImageProxyUrl(rawUrl, explicitBlockId) {
+  if (!/^https?:\/\//i.test(rawUrl)) {
+    return rawUrl;
+  }
+
+  const parsed = new URL(rawUrl);
+  if (parsed.pathname === "/api/notion-image") {
+    return rawUrl;
+  }
+
+  const query = new URLSearchParams({ src: rawUrl });
+  if (explicitBlockId) {
+    query.set("blockId", explicitBlockId);
+  }
+
+  return `/api/notion-image?${query.toString()}`;
+}
+
 function configureNotionToMarkdown(notionToMarkdown) {
+  notionToMarkdown.setCustomTransformer("image", async (rawBlock) => {
+    const block = rawBlock;
+    if (block.type !== "image" || !block.image) {
+      return false;
+    }
+
+    const imageBlock = block.image;
+    const sourceUrl =
+      imageBlock.type === "external" ? imageBlock.external?.url : imageBlock.file?.url;
+    if (!sourceUrl) {
+      return "";
+    }
+
+    const alt = imageBlock.caption.map((item) => item.plain_text).join("").trim();
+    const proxiedUrl = buildNotionImageProxyUrl(sourceUrl, block.id);
+
+    return `![${alt}](${proxiedUrl})`;
+  });
+
   notionToMarkdown.setCustomTransformer("audio", async (rawBlock) => {
     const block = rawBlock;
     if (block.type !== "audio" || !block.audio) {

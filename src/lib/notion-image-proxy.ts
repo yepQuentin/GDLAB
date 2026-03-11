@@ -57,7 +57,7 @@ export function extractNotionBlockIdFromUrl(rawUrl: string): string | null {
   return null;
 }
 
-export function buildNotionImageProxyUrl(rawUrl: string): string {
+export function buildNotionImageProxyUrl(rawUrl: string, explicitBlockId?: string | null): string {
   if (!/^https?:\/\//i.test(rawUrl)) {
     return rawUrl;
   }
@@ -68,7 +68,7 @@ export function buildNotionImageProxyUrl(rawUrl: string): string {
   }
 
   const query = new URLSearchParams({ src: rawUrl });
-  const blockId = extractNotionBlockIdFromUrl(rawUrl);
+  const blockId = normalizeNotionId(explicitBlockId) ?? extractNotionBlockIdFromUrl(rawUrl);
 
   if (blockId) {
     query.set("blockId", blockId);
@@ -92,4 +92,3 @@ export function rewriteMarkdownImageUrlsWithProxy(markdown: string): string {
     },
   );
 }
-

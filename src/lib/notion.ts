@@ -25,7 +25,10 @@ import {
   buildNotionAudioProxyUrl,
   rewriteMarkdownAudioUrlsWithProxy,
 } from "@/lib/notion-audio-proxy";
-import { rewriteMarkdownImageUrlsWithProxy } from "@/lib/notion-image-proxy";
+import {
+  buildNotionImageProxyUrl,
+  rewriteMarkdownImageUrlsWithProxy,
+} from "@/lib/notion-image-proxy";
 
 const notionToken = process.env.NOTION_TOKEN;
 const rawDatabaseId = process.env.NOTION_DATABASE_ID;
@@ -46,6 +49,17 @@ interface NotionAudioBlockLike {
   id: string;
   type: string;
   audio?: {
+    type: "external" | "file";
+    external?: { url: string };
+    file?: { url: string };
+    caption: Array<{ plain_text: string }>;
+  };
+}
+
+interface NotionImageBlockLike {
+  id: string;
+  type: string;
+  image?: {
     type: "external" | "file";
     external?: { url: string };
     file?: { url: string };
@@ -100,6 +114,25 @@ function waitForRetry(delayMs: number): Promise<void> {
 }
 
 if (notionToMarkdown) {
+  notionToMarkdown.setCustomTransformer("image", async (rawBlock) => {
+    const block = rawBlock as unknown as NotionImageBlockLike;
+    if (block.type !== "image" || !block.image) {
+      return false;
+    }
+
+    const imageBlock = block.image;
+    const sourceUrl =
+      imageBlock.type === "external" ? imageBlock.external?.url : imageBlock.file?.url;
+    if (!sourceUrl) {
+      return "";
+    }
+
+    const alt = imageBlock.caption.map((item) => item.plain_text).join("").trim();
+    const proxiedUrl = buildNotionImageProxyUrl(sourceUrl, block.id);
+
+    return `![${alt}](${proxiedUrl})`;
+  });
+
   notionToMarkdown.setCustomTransformer("audio", async (rawBlock) => {
     const block = rawBlock as unknown as NotionAudioBlockLike;
     if (block.type !== "audio" || !block.audio) {
