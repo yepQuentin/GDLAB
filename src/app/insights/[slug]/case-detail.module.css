@@ -13,6 +13,7 @@
   --case-layout-width: calc(var(--case-content-width) + 17rem);
   --case-text-width: var(--case-content-width);
   --case-media-width: var(--case-content-width);
+  --case-heading-wrap: pretty;
   position: relative;
   display: grid;
   width: 100%;
@@ -61,12 +62,13 @@
 
 .title {
   margin: 0;
-  max-width: 16ch;
+  max-width: 100%;
   font-family: var(--font-sans);
   font-size: clamp(2.5rem, 5.2vw, 4.6rem);
   line-height: 1.02;
   letter-spacing: -0.05em;
-  text-wrap: balance;
+  text-wrap: var(--case-heading-wrap);
+  overflow-wrap: anywhere;
 }
 
 .metaRow {
@@ -369,7 +371,8 @@
   font-family: var(--font-sans);
   letter-spacing: -0.03em;
   scroll-margin-top: calc(var(--case-sticky-top) + 1rem);
-  text-wrap: balance;
+  text-wrap: var(--case-heading-wrap);
+  overflow-wrap: anywhere;
 }
 
 .sectionHeading {

@@ -10,13 +10,15 @@ interface MarkdownContentProps {
 
 interface AudioLinkBlockProps {
   src: string;
-  label: string;
 }
 
-function AudioLinkBlock({ src, label }: AudioLinkBlockProps) {
+function AudioLinkBlock({ src }: AudioLinkBlockProps) {
   return (
     <div className="audio-link-wrapper">
-      <PodcastAudioPlayer src={src} label={label} />
+      <PodcastAudioPlayer src={src} label="点击收听 AI 播客" />
+      <p className="podcast-ai-note">
+        *本播客由AI工具根据本文内容一键生成，AI生成存在内容偏差，请以文本内容为准
+      </p>
     </div>
   );
 }
@@ -212,7 +214,7 @@ export function MarkdownContent({ markdown }: MarkdownContentProps) {
                 const href = extractHref(anchorNode);
                 const label = flattenAstText(anchorNode.children).trim() || "今日播客音频";
                 if (href && isAudioHref(href, label)) {
-                  return <AudioLinkBlock src={href} label={label} />;
+                  return <AudioLinkBlock src={href} />;
                 }
               }
             }

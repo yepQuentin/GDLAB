@@ -19,8 +19,11 @@ export default async function HomePage() {
   return (
     <div className="page-stack home-page">
       <section className="portal-hero">
-        <h1 className="portal-title">GDLAB｜歌尔丹拿商学院</h1>
-        <p className="portal-lead">OPEN · SOFT · DYNAMIC · KEEN</p>
+        <p className="portal-kicker">一个歌尔丹拿主管专属的信息平台</p>
+        <h1 className="portal-title">GDLAB</h1>
+        <p className="portal-lead">
+          挖掘海内外重点事件与非公开情报，精选与公司战略高度相关的资讯与案例进行解读
+        </p>
       </section>
 
       {hint ? <p className="config-hint">{hint}</p> : null}
@@ -56,7 +59,7 @@ export default async function HomePage() {
             查看全部
           </Link>
         </div>
-        <p className="section-description">最新 2 篇深度分析，聚焦商业与品牌</p>
+        <p className="section-description">围绕领先案例与重点事件进行深度解读</p>
 
         <div className="content-grid">
           {payload.insightRecent.length > 0 ? (

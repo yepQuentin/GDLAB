@@ -341,25 +341,35 @@ a {
 .home-page .portal-hero {
   border-top: 0;
   padding-top: 0;
-  gap: clamp(0.5rem, 1vw, 0.9rem);
+  gap: clamp(0.72rem, 1.35vw, 1.2rem);
+}
+
+.home-page .portal-kicker {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 400;
 }
 
 .home-page .portal-title {
   max-width: none;
   white-space: normal;
-  font-size: clamp(1.95rem, 4.8vw, 3.6rem);
-  line-height: 1.02;
+  font-size: clamp(2.35rem, 6.6vw, 5.2rem);
+  line-height: 1;
   letter-spacing: -0.035em;
+  font-weight: 820;
 }
 
 .home-page .portal-lead {
-  max-width: none;
-  font-size: clamp(0.72rem, 0.95vw, 0.84rem);
-  line-height: 1.35;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: #6e6e76;
-  font-weight: 520;
+  max-width: 34em;
+  font-size: 1rem;
+  line-height: 1.7;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--muted);
+  font-weight: 400;
 }
 
 .home-page .portal-channel {
@@ -898,6 +908,11 @@ a {
 }
 
 @media (min-width: 860px) {
+  .home-page .portal-lead {
+    max-width: none;
+    white-space: nowrap;
+  }
+
   .desktop-nav {
     display: flex;
   }
@@ -953,7 +968,7 @@ a {
   }
 
   body:has(.article-page .daily-sections-grid) .article-kicker::before {
-    content: "歌尔丹拿商学院";
+    content: "DAILY PULSE";
     display: block;
     color: #1f1f23;
     font-size: clamp(0.95rem, 2vw, 1.35rem);
@@ -1029,7 +1044,7 @@ a {
     width: 100%;
     max-width: none;
     display: grid;
-    gap: 0.56rem;
+    gap: 1.02rem;
   }
 
   body:has(.article-page .daily-sections-grid) .daily-intro .podcast-player {
@@ -1039,7 +1054,13 @@ a {
 
   body:has(.article-page .daily-sections-grid) .daily-intro .podcast-player-header {
     grid-template-columns: 1fr auto;
+    align-items: center;
     gap: 0.55rem;
+  }
+
+  body:has(.article-page .daily-sections-grid) .daily-intro .podcast-player-right {
+    align-items: center;
+    min-height: 29px;
   }
 
   body:has(.article-page .daily-sections-grid) .daily-intro .podcast-play-btn {
@@ -1050,8 +1071,13 @@ a {
   }
 
   body:has(.article-page .daily-sections-grid) .daily-intro .podcast-player-title {
+    display: inline-flex;
+    align-items: center;
+    min-height: 29px;
     font-size: 0.78rem;
+    line-height: 1;
     color: #3d424b;
+    transform: translateY(4.5px);
   }
 
   body:has(.article-page .daily-sections-grid) .daily-intro .podcast-player-title::before {
@@ -1060,7 +1086,10 @@ a {
   }
 
   body:has(.article-page .daily-sections-grid) .daily-intro .podcast-player-time {
+    display: inline-flex;
+    align-items: center;
     font-size: 0.72rem;
+    line-height: 1;
     color: #767c86;
   }
 
@@ -1166,10 +1195,14 @@ a {
     margin: 0;
     color: #111116;
     font-size: clamp(1.18rem, 1.85vw, 1.52rem);
-    line-height: 1.2;
+    line-height: 1.26;
     font-weight: 700;
     letter-spacing: -0.01em;
-    max-width: 24ch;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: normal;
+    line-break: strict;
+    text-wrap: pretty;
   }
 
   body:has(.article-page .daily-sections-grid) .daily-item-text .markdown-content {
@@ -1189,7 +1222,7 @@ a {
 
   @media (min-width: 768px) {
     body:has(.article-page .daily-sections-grid) .daily-item[data-has-image="true"] {
-      grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       column-gap: clamp(1.1rem, 2.3vw, 2rem);
       align-items: start;
     }
@@ -1251,6 +1284,9 @@ a {
     font-size: clamp(0.84rem, 1.04vw, 0.96rem);
     line-height: 1.68;
     color: #292930;
+    text-align: justify;
+    text-justify: inter-character;
+    text-align-last: left;
   }
 
   body:has(.article-page .daily-sections-grid) .markdown-content h3 {
@@ -1324,6 +1360,8 @@ a {
 
   body:has(.article-page .daily-sections-grid) .source-link-row {
     margin: 0.45rem 0 0.85rem;
+    text-align: left;
+    text-align-last: auto;
   }
 
   body:has(.article-page .daily-sections-grid) .source-link,
@@ -1357,6 +1395,10 @@ a {
     body:has(.article-page .daily-sections-grid) .article-summary {
       margin-right: 0;
       text-align: left;
+    }
+
+    body:has(.article-page .daily-sections-grid) .daily-item-title {
+      text-wrap: auto;
     }
 
     body:has(.article-page .daily-sections-grid) .daily-intro .podcast-track-shell {
@@ -1407,14 +1449,37 @@ a {
   margin: 0;
   color: #111116;
   font-size: clamp(1.18rem, 1.85vw, 1.52rem);
-  line-height: 1.2;
+  line-height: 1.26;
   font-weight: 700;
   letter-spacing: -0.01em;
-  max-width: 24ch;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+  line-break: strict;
+  text-wrap: pretty;
 }
 
 .article-page.daily-layout .daily-item-text .markdown-content {
   max-width: 70ch;
+}
+
+.article-page.daily-layout .daily-item-text .markdown-content p,
+.article-page.daily-layout .daily-item-text .markdown-content li {
+  text-align: justify;
+  text-justify: inter-character;
+  text-align-last: left;
+}
+
+.article-page.daily-layout .daily-item-text .markdown-content .source-link-row {
+  text-align: left;
+  text-align-last: auto;
+}
+
+.article-page.daily-layout .audio-link-wrapper .podcast-ai-note {
+  margin: 0.4rem 0 0;
+  color: #767c86;
+  font-size: 0.68rem;
+  line-height: 1.62;
 }
 
 .article-page.daily-layout .daily-item-media {
@@ -1430,7 +1495,7 @@ a {
 
 @media (min-width: 768px) {
   .article-page.daily-layout .daily-item[data-has-image="true"] {
-    grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     column-gap: clamp(1.1rem, 2.3vw, 2rem);
     align-items: start;
   }
@@ -1460,6 +1525,10 @@ a {
 }
 
 @media (max-width: 767px) {
+  .article-page.daily-layout .daily-item-title {
+    text-wrap: auto;
+  }
+
   .article-page.daily-layout .daily-item[data-has-image="true"] {
     grid-template-columns: 1fr;
   }
