@@ -1,11 +1,17 @@
 import { Client } from "@notionhq/client";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import { readFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
 
 import {
   extractNotionBlockIdFromUrl,
   normalizeNotionId,
 } from "@/lib/notion-image-proxy";
+import {
+  cacheNotionMedia,
+  findCachedNotionMedia,
+  parseHttpByteRange,
+} from "@/lib/notion-media-cache";
 
 const notionToken = process.env.NOTION_TOKEN;
 const notionClient = notionToken ? new Client({ auth: notionToken }) : null;
@@ -50,20 +56,14 @@ async function resolveFreshNotionAudioUrl(blockId: string): Promise<string | nul
   }
 }
 
-async function fetchAudioFromCandidate(url: string, rangeHeader: string | null): Promise<Response | null> {
+async function fetchAudioFromCandidate(url: string): Promise<Response | null> {
   try {
-    const headers = new Headers();
-    if (rangeHeader) {
-      headers.set("Range", rangeHeader);
-    }
-
     const response = await fetch(url, {
       cache: "no-store",
       redirect: "follow",
-      headers,
     });
 
-    if (!response.ok && response.status !== 206) {
+    if (!response.ok) {
       return null;
     }
 
@@ -73,31 +73,107 @@ async function fetchAudioFromCandidate(url: string, rangeHeader: string | null):
   }
 }
 
-function createAudioProxyResponse(upstream: Response): Response {
+function createAudioResponse(contentType: string, body: Uint8Array, totalByteLength: number): Response {
   const headers = new Headers();
 
-  headers.set("Content-Type", upstream.headers.get("content-type") ?? "audio/mpeg");
+  headers.set("Content-Type", contentType || "audio/mpeg");
   headers.set("Cache-Control", "public, max-age=43200, stale-while-revalidate=86400");
-  headers.set("Accept-Ranges", upstream.headers.get("accept-ranges") ?? "bytes");
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Length", String(totalByteLength));
 
-  const optionalHeaders = [
-    "content-length",
-    "content-range",
-    "etag",
-    "last-modified",
-  ];
-
-  for (const headerName of optionalHeaders) {
-    const value = upstream.headers.get(headerName);
-    if (value) {
-      headers.set(headerName, value);
-    }
-  }
-
-  return new Response(upstream.body, {
-    status: upstream.status === 206 ? 206 : 200,
+  return new Response(body as BodyInit, {
+    status: 200,
     headers,
   });
+}
+
+function createRangedAudioResponse(
+  contentType: string,
+  body: Buffer,
+  totalByteLength: number,
+  rangeHeader: string | null,
+): Response {
+  const parsedRange = parseHttpByteRange(rangeHeader, totalByteLength);
+  if (parsedRange.status === "invalid") {
+    return new Response(null, {
+      status: 416,
+      headers: {
+        "Content-Range": `bytes */${totalByteLength}`,
+        "Accept-Ranges": "bytes",
+      },
+    });
+  }
+
+  if (parsedRange.status !== "ok") {
+    return createAudioResponse(contentType, body, totalByteLength);
+  }
+
+  const slicedBody = body.subarray(parsedRange.start, parsedRange.end + 1);
+  const headers = new Headers();
+  headers.set("Content-Type", contentType || "audio/mpeg");
+  headers.set("Cache-Control", "public, max-age=43200, stale-while-revalidate=86400");
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Length", String(parsedRange.byteLength));
+  headers.set("Content-Range", `bytes ${parsedRange.start}-${parsedRange.end}/${totalByteLength}`);
+
+  return new Response(slicedBody as BodyInit, {
+    status: 206,
+    headers,
+  });
+}
+
+async function buildCachedAudioResponse(
+  blockId: string | null,
+  sourceUrl: string | null,
+  rangeHeader: string | null,
+): Promise<Response | null> {
+  const cached = await findCachedNotionMedia({
+    kind: "audio",
+    blockId,
+    sourceUrl,
+  });
+
+  if (!cached) {
+    return null;
+  }
+
+  const body = await readFile(cached.filePath);
+  return createRangedAudioResponse(
+    cached.contentType,
+    body,
+    cached.byteLength || body.length,
+    rangeHeader,
+  );
+}
+
+async function fetchAndCacheAudioResponse(
+  sourceUrl: string,
+  blockId: string | null,
+  rangeHeader: string | null,
+): Promise<Response | null> {
+  const upstream = await fetchAudioFromCandidate(sourceUrl);
+  if (!upstream) {
+    return null;
+  }
+
+  const body = Buffer.from(await upstream.arrayBuffer());
+  const contentType = upstream.headers.get("content-type") ?? "audio/mpeg";
+
+  try {
+    await cacheNotionMedia({
+      kind: "audio",
+      blockId,
+      sourceUrl,
+      contentType,
+      body,
+    });
+  } catch (error) {
+    console.warn(
+      `[notion-audio] local cache write skipped for ${blockId ?? "no-block"} ${sourceUrl}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  return createRangedAudioResponse(contentType, body, body.length, rangeHeader);
 }
 
 export async function GET(request: Request) {
@@ -113,6 +189,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid audio source." }, { status: 400 });
   }
 
+  const cached = await buildCachedAudioResponse(blockId, sourceUrl?.toString() ?? null, rangeHeader);
+  if (cached) {
+    return cached;
+  }
+
   const candidates: string[] = [];
   if (blockId) {
     const freshAudioUrl = await resolveFreshNotionAudioUrl(blockId);
@@ -125,20 +206,11 @@ export async function GET(request: Request) {
   }
 
   for (const candidate of candidates) {
-    const upstream = await fetchAudioFromCandidate(candidate, rangeHeader);
-    if (upstream) {
-      return createAudioProxyResponse(upstream);
-    }
-
-    // Fallback for origins that reject ranged requests.
-    if (rangeHeader) {
-      const fallbackUpstream = await fetchAudioFromCandidate(candidate, null);
-      if (fallbackUpstream) {
-        return createAudioProxyResponse(fallbackUpstream);
-      }
+    const cachedResponse = await fetchAndCacheAudioResponse(candidate, blockId, rangeHeader);
+    if (cachedResponse) {
+      return cachedResponse;
     }
   }
 
   return NextResponse.json({ error: "Audio unavailable." }, { status: 502 });
 }
-

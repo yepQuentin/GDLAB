@@ -10,6 +10,8 @@ NOTION_DATABASE_ID=...
 NEXT_PUBLIC_SITE_URL=https://quentin.fun
 REVALIDATE_SECRET=...
 NOTION_SNAPSHOT_DIR=/var/lib/gdlab/notion-snapshots
+NOTION_MEDIA_CACHE_DIR=/var/lib/gdlab/notion-media-cache
+NOTION_MEDIA_STATE_FILE=/var/lib/gdlab/notion-media-cache/media-state.json
 NOTION_SNAPSHOT_RETENTION_DAYS=90
 REVALIDATE_URL=http://127.0.0.1:3000/api/internal/revalidate
 ```

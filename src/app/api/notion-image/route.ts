@@ -1,11 +1,16 @@
 import { Client } from "@notionhq/client";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import { readFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
 
 import {
   extractNotionBlockIdFromUrl,
   normalizeNotionId,
 } from "@/lib/notion-image-proxy";
+import {
+  cacheNotionMedia,
+  findCachedNotionMedia,
+} from "@/lib/notion-media-cache";
 
 const notionToken = process.env.NOTION_TOKEN;
 const notionClient = notionToken ? new Client({ auth: notionToken }) : null;
@@ -71,20 +76,63 @@ async function fetchImageResponse(url: string): Promise<Response | null> {
   }
 }
 
-function buildProxyResponse(upstream: Response): Response {
+function buildBufferedImageResponse(contentType: string, body: Buffer): Response {
   const headers = new Headers();
-  headers.set("Content-Type", upstream.headers.get("content-type") ?? "image/jpeg");
+  headers.set("Content-Type", contentType || "image/jpeg");
   headers.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+  headers.set("Content-Length", String(body.length));
 
-  const contentLength = upstream.headers.get("content-length");
-  if (contentLength) {
-    headers.set("Content-Length", contentLength);
-  }
-
-  return new Response(upstream.body, {
+  return new Response(body as BodyInit, {
     status: 200,
     headers,
   });
+}
+
+async function buildCachedImageResponse(
+  blockId: string | null,
+  sourceUrl: string | null,
+): Promise<Response | null> {
+  const cached = await findCachedNotionMedia({
+    kind: "image",
+    blockId,
+    sourceUrl,
+  });
+
+  if (!cached) {
+    return null;
+  }
+
+  const body = await readFile(cached.filePath);
+  return buildBufferedImageResponse(cached.contentType, body);
+}
+
+async function fetchAndCacheImageResponse(
+  sourceUrl: string,
+  blockId: string | null,
+): Promise<Response | null> {
+  const upstream = await fetchImageResponse(sourceUrl);
+  if (!upstream) {
+    return null;
+  }
+
+  const body = Buffer.from(await upstream.arrayBuffer());
+  const contentType = upstream.headers.get("content-type") ?? "image/jpeg";
+
+  try {
+    await cacheNotionMedia({
+      kind: "image",
+      blockId,
+      sourceUrl,
+      contentType,
+      body,
+    });
+  } catch (error) {
+    console.warn(
+      `[notion-image] local cache write skipped for ${blockId ?? "no-block"} ${sourceUrl}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  return buildBufferedImageResponse(contentType, body);
 }
 
 export async function GET(request: Request) {
@@ -99,19 +147,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid image source." }, { status: 400 });
   }
 
+  const cached = await buildCachedImageResponse(blockId, srcUrl?.toString() ?? null);
+  if (cached) {
+    return cached;
+  }
+
   if (srcUrl) {
-    const upstream = await fetchImageResponse(srcUrl.toString());
-    if (upstream) {
-      return buildProxyResponse(upstream);
+    const cachedResponse = await fetchAndCacheImageResponse(srcUrl.toString(), blockId);
+    if (cachedResponse) {
+      return cachedResponse;
     }
   }
 
   if (blockId) {
     const freshUrl = await resolveFreshNotionImageUrl(blockId);
     if (freshUrl) {
-      const upstream = await fetchImageResponse(freshUrl);
-      if (upstream) {
-        return buildProxyResponse(upstream);
+      const cachedResponse = await fetchAndCacheImageResponse(freshUrl, blockId);
+      if (cachedResponse) {
+        return cachedResponse;
       }
     }
   }
