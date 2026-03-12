@@ -12,6 +12,11 @@ export const metadata: Metadata = {
     template: "%s | GDLAB 商学院",
   },
   description: "每日资讯与深度商业文章解读",
+  alternates: {
+    types: {
+      "application/rss+xml": `${siteUrl}/rss.xml`,
+    },
+  },
   icons: {
     icon: [{ url: "/GoerDynamics.png", type: "image/png" }],
     shortcut: "/GoerDynamics.png",

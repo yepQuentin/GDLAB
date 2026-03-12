@@ -20,6 +20,7 @@ export const REVALIDATE_PATH_TARGETS = [
   { path: "/insights" },
   { path: "/search" },
   { path: "/sitemap.xml" },
+  { path: "/rss.xml" },
   { path: "/daily/[slug]", type: "page" as const },
   { path: "/insights/[slug]", type: "page" as const },
 ] as const;

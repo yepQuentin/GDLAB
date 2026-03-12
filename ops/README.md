@@ -7,7 +7,7 @@
 ```bash
 NOTION_TOKEN=...
 NOTION_DATABASE_ID=...
-NEXT_PUBLIC_SITE_URL=https://quentin.fun
+NEXT_PUBLIC_SITE_URL=https://gdlab.goerdynamics.com
 REVALIDATE_SECRET=...
 NOTION_SNAPSHOT_DIR=/var/lib/gdlab/notion-snapshots
 NOTION_MEDIA_CACHE_DIR=/var/lib/gdlab/notion-media-cache
@@ -15,6 +15,8 @@ NOTION_MEDIA_STATE_FILE=/var/lib/gdlab/notion-media-cache/media-state.json
 NOTION_SNAPSHOT_RETENTION_DAYS=90
 REVALIDATE_URL=http://127.0.0.1:3000/api/internal/revalidate
 ```
+
+`NEXT_PUBLIC_SITE_URL` 必须设置为线上正式域名，否则 RSS / sitemap / robots 中的绝对链接会错误。
 
 建议权限：
 
@@ -59,6 +61,6 @@ systemctl reload nginx
 ## 5) HTTPS（Let's Encrypt）
 
 ```bash
-certbot --nginx -d quentin.fun -d www.quentin.fun
+certbot --nginx -d gdlab.goerdynamics.com -d www.gdlab.goerdynamics.com
 certbot renew --dry-run
 ```
