@@ -428,6 +428,14 @@
   text-wrap: pretty;
 }
 
+.paragraph,
+.listItemText,
+.quoteText,
+.calloutText {
+  text-align: justify;
+  text-justify: inter-ideograph;
+}
+
 .paragraph:first-child {
   margin-top: 0;
 }
@@ -894,6 +902,12 @@
 }
 
 @media (max-width: 699px) {
+  .figure,
+  .mediaFrame {
+    content-visibility: visible;
+    contain-intrinsic-size: auto;
+  }
+
   .tocMobile {
     display: block;
     position: sticky;
