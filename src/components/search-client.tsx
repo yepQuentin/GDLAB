@@ -100,7 +100,7 @@ export function SearchClient({ docs }: SearchClientProps) {
       <div className="search-result-grid">
         {filteredDocs.length > 0 ? (
           filteredDocs.map((doc) => (
-            <article key={doc.id} className="content-card">
+            <article key={doc.id} className="content-card content-card-compact">
               <div className="content-card-meta">
                 <span className="content-type">{doc.type === "daily" ? "每日热点" : "深度分析"}</span>
                 <span>{formatDate(doc.publishDate)}</span>
@@ -108,7 +108,6 @@ export function SearchClient({ docs }: SearchClientProps) {
               <h3 className="content-card-title">
                 <Link href={doc.url}>{doc.title}</Link>
               </h3>
-              <p className="content-card-summary">{doc.summary || "暂无摘要"}</p>
               {doc.tags.length > 0 ? (
                 <div className="content-card-tags">
                   {doc.tags.map((tag) => (

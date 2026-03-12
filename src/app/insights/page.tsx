@@ -39,7 +39,7 @@ export default async function InsightListPage({ searchParams }: InsightListPageP
 
         <div className="content-grid">
           {payload.items.length > 0 ? (
-            payload.items.map((item) => <ContentCard key={item.id} item={item} />)
+            payload.items.map((item) => <ContentCard key={item.id} item={item} showSummary={false} />)
           ) : (
             <p className="empty-state">暂无 Insights 历史内容。</p>
           )}

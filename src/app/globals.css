@@ -278,6 +278,11 @@ a {
   height: 100%;
 }
 
+.content-card-compact {
+  grid-template-rows: auto auto auto;
+  align-content: start;
+}
+
 .content-card-meta {
   display: flex;
   align-items: center;
@@ -324,6 +329,10 @@ a {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+}
+
+.content-card-compact .content-card-tags {
+  margin-top: 0;
 }
 
 .content-card-tags span {

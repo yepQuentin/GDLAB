@@ -4,6 +4,7 @@ import type { ContentMeta } from "@/lib/types";
 
 interface ContentCardProps {
   item: ContentMeta;
+  showSummary?: boolean;
 }
 
 function formatDate(dateString: string) {
@@ -20,18 +21,19 @@ function formatDate(dateString: string) {
   }).format(date);
 }
 
-export function ContentCard({ item }: ContentCardProps) {
+export function ContentCard({ item, showSummary = true }: ContentCardProps) {
   const href = item.type === "daily" ? `/daily/${item.slug}` : `/insights/${item.slug}`;
+  const cardClassName = showSummary ? "content-card" : "content-card content-card-compact";
 
   return (
-    <article className="content-card">
+    <article className={cardClassName}>
       <div className="content-card-meta">
         <span>{formatDate(item.publishDate)}</span>
       </div>
       <h3 className="content-card-title">
         <Link href={href}>{item.title}</Link>
       </h3>
-      <p className="content-card-summary">{item.summary || "暂无摘要"}</p>
+      {showSummary ? <p className="content-card-summary">{item.summary || "暂无摘要"}</p> : null}
       {item.tags.length > 0 ? (
         <div className="content-card-tags">
           {item.tags.map((tag) => (

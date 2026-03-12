@@ -42,7 +42,9 @@ export default async function HomePage() {
 
         <div className="content-grid">
           {payload.dailyRecent.length > 0 ? (
-            payload.dailyRecent.map((item) => <ContentCard key={item.id} item={item} />)
+            payload.dailyRecent.map((item) => (
+              <ContentCard key={item.id} item={item} showSummary={false} />
+            ))
           ) : (
             <p className="empty-state">最近 3 天暂无 Daily Pulse 内容。</p>
           )}
@@ -63,7 +65,9 @@ export default async function HomePage() {
 
         <div className="content-grid">
           {payload.insightRecent.length > 0 ? (
-            payload.insightRecent.map((item) => <ContentCard key={item.id} item={item} />)
+            payload.insightRecent.map((item) => (
+              <ContentCard key={item.id} item={item} showSummary={false} />
+            ))
           ) : (
             <p className="empty-state">暂无 Insights 内容。</p>
           )}
