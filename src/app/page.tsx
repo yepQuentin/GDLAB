@@ -19,7 +19,7 @@ export default async function HomePage() {
   return (
     <div className="page-stack home-page">
       <section className="portal-hero">
-        <p className="portal-kicker">一个歌尔丹拿主管专属的信息平台</p>
+        <p className="portal-kicker">商业探索道场</p>
         <h1 className="portal-title">GDLAB</h1>
         <p className="portal-lead">
           挖掘海内外重点事件与非公开情报，精选与公司战略高度相关的资讯与案例进行解读
