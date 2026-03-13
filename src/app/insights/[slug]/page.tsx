@@ -106,7 +106,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
       </header>
 
       <Suspense fallback={<CaseArticleSkeleton />}>
-        <CaseArticleBody pageId={meta.id} />
+        <CaseArticleBody pageId={meta.id} slug={meta.slug} />
       </Suspense>
     </article>
   );

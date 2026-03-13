@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { PodcastAudioPlayer } from "@/components/podcast-audio-player";
+import { EngagementActionBar, EngagementReadCount } from "@/components/engagement-bar";
 import { CaseOutlineNav } from "@/app/insights/[slug]/case-outline-nav";
 import {
   resolveCaseVideoPresentation,
@@ -26,6 +27,11 @@ import styles from "./case-detail.module.css";
 
 interface CaseArticleBodyProps {
   pageId: string;
+  slug: string;
+}
+
+interface CaseArticleLayoutProps extends CaseArticleReadyState {
+  slug: string;
 }
 
 function isExternalHref(href: string): boolean {
@@ -436,7 +442,8 @@ function CaseArticleLayout({
   model,
   readMinutes,
   sectionCount,
-}: CaseArticleReadyState) {
+  slug,
+}: CaseArticleLayoutProps) {
   const hasIntro = model.intro.length > 0;
   const hasSections = model.sections.length > 0;
   const formattedCharacterCount = new Intl.NumberFormat("zh-CN").format(characterCount);
@@ -464,6 +471,13 @@ function CaseArticleLayout({
               <span className={styles.statsLabel}>图表媒体</span>
               <strong>{mediaCount}</strong>
             </div>
+            <EngagementReadCount
+              type="insight"
+              slug={slug}
+              variant="insight-stats"
+              itemClassName={styles.statsItem}
+              labelClassName={styles.statsLabel}
+            />
           </section>
 
           {hasIntro ? (
@@ -494,13 +508,15 @@ function CaseArticleLayout({
           ) : !hasIntro ? (
             <CaseFailurePanel title="正文为空" description="这篇 Insights 文章已经发布，但正文还没有可渲染的内容块。" />
           ) : null}
+
+          <EngagementActionBar type="insight" slug={slug} />
         </div>
       </div>
     </div>
   );
 }
 
-export async function CaseArticleBody({ pageId }: CaseArticleBodyProps) {
+export async function CaseArticleBody({ pageId, slug }: CaseArticleBodyProps) {
   const state = await getCaseArticleState(pageId).catch(() => null);
   if (!state) {
     return (
@@ -529,7 +545,7 @@ export async function CaseArticleBody({ pageId }: CaseArticleBodyProps) {
     );
   }
 
-  return <CaseArticleLayout {...state} />;
+  return <CaseArticleLayout {...state} slug={slug} />;
 }
 
 export function CaseArticleSkeleton() {
@@ -560,6 +576,10 @@ export function CaseArticleSkeleton() {
             </div>
             <div className={styles.statsItem}>
               <span className={styles.statsLabel}>图表媒体</span>
+              <div className={styles.skeletonValue} />
+            </div>
+            <div className={styles.statsItem}>
+              <span className={styles.statsLabel}>阅读人数</span>
               <div className={styles.skeletonValue} />
             </div>
           </section>

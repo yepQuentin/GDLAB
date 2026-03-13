@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { EngagementActionBar, EngagementReadCount } from "@/components/engagement-bar";
 import { MarkdownContent } from "@/components/markdown-content";
 import {
   getCanonicalUrl,
@@ -223,7 +224,15 @@ export default async function DailyDetailPage({ params }: DailyDetailPageProps) 
       <header className="article-header">
         <p className="article-kicker">Daily Pulse</p>
         <h1>{detail.meta.title}</h1>
-        <p className="article-meta">发布日期：{formatDate(detail.meta.publishDate)}</p>
+        <div className="article-meta-row">
+          <p className="article-meta">发布日期：{formatDate(detail.meta.publishDate)}</p>
+          <EngagementReadCount
+            type="daily"
+            slug={detail.meta.slug}
+            variant="daily-meta-inline"
+            className="article-meta"
+          />
+        </div>
         {detail.meta.summary ? <p className="article-summary">{detail.meta.summary}</p> : null}
       </header>
 
@@ -243,6 +252,8 @@ export default async function DailyDetailPage({ params }: DailyDetailPageProps) 
         <DailySectionBlock titleCn="行业" titleEn="Industries" markdown={sections?.industry ?? ""} />
         <DailySectionBlock titleCn="科技" titleEn="Techs" markdown={sections?.technology ?? ""} />
       </div>
+
+      <EngagementActionBar type="daily" slug={detail.meta.slug} />
     </article>
   );
 }
