@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Fuse from "fuse.js";
-import Link from "next/link";
 
+import { ContentCard } from "@/components/content-card";
 import type { SearchDocument, ContentType } from "@/lib/types";
 
 interface SearchClientProps {
@@ -11,20 +11,6 @@ interface SearchClientProps {
 }
 
 type SearchFilter = "all" | ContentType;
-
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return dateString;
-  }
-
-  return new Intl.DateTimeFormat("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "Asia/Shanghai",
-  }).format(date);
-}
 
 export function SearchClient({ docs }: SearchClientProps) {
   const [query, setQuery] = useState("");
@@ -100,22 +86,19 @@ export function SearchClient({ docs }: SearchClientProps) {
       <div className="search-result-grid">
         {filteredDocs.length > 0 ? (
           filteredDocs.map((doc) => (
-            <article key={doc.id} className="content-card content-card-compact">
-              <div className="content-card-meta">
-                <span className="content-type">{doc.type === "daily" ? "每日热点" : "深度分析"}</span>
-                <span>{formatDate(doc.publishDate)}</span>
-              </div>
-              <h3 className="content-card-title">
-                <Link href={doc.url}>{doc.title}</Link>
-              </h3>
-              {doc.tags.length > 0 ? (
-                <div className="content-card-tags">
-                  {doc.tags.map((tag) => (
-                    <span key={`${doc.id}-${tag}`}>{tag}</span>
-                  ))}
-                </div>
-              ) : null}
-            </article>
+            <ContentCard
+              key={doc.id}
+              item={{
+                id: doc.id,
+                title: doc.title,
+                type: doc.type,
+                publishDate: doc.publishDate,
+                summary: doc.summary,
+                tags: doc.tags,
+                href: doc.url,
+              }}
+              showSummary={false}
+            />
           ))
         ) : (
           <p className="empty-state">未检索到匹配内容，请尝试更换关键词。</p>

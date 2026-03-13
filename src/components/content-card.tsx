@@ -1,10 +1,21 @@
 import Link from "next/link";
 
-import type { ContentMeta } from "@/lib/types";
+import type { ContentMeta, ContentType } from "@/lib/types";
 
 interface ContentCardProps {
-  item: ContentMeta;
+  item: ContentCardItem;
   showSummary?: boolean;
+}
+
+export interface ContentCardItem {
+  id: string;
+  title: string;
+  type: ContentType;
+  publishDate: string;
+  summary?: string;
+  tags: string[];
+  slug?: ContentMeta["slug"];
+  href?: string;
 }
 
 function formatDate(dateString: string) {
@@ -22,25 +33,34 @@ function formatDate(dateString: string) {
 }
 
 export function ContentCard({ item, showSummary = true }: ContentCardProps) {
-  const href = item.type === "daily" ? `/daily/${item.slug}` : `/insights/${item.slug}`;
+  const href =
+    item.href ??
+    (item.slug ? (item.type === "daily" ? `/daily/${item.slug}` : `/insights/${item.slug}`) : undefined);
   const cardClassName = showSummary ? "content-card" : "content-card content-card-compact";
+
+  if (!href) {
+    throw new Error(`ContentCard item "${item.id}" is missing both href and slug.`);
+  }
 
   return (
     <article className={cardClassName}>
-      <div className="content-card-meta">
-        <span>{formatDate(item.publishDate)}</span>
-      </div>
-      <h3 className="content-card-title">
-        <Link href={href}>{item.title}</Link>
-      </h3>
-      {showSummary ? <p className="content-card-summary">{item.summary || "暂无摘要"}</p> : null}
-      {item.tags.length > 0 ? (
-        <div className="content-card-tags">
-          {item.tags.map((tag) => (
-            <span key={`${item.id}-${tag}`}>{tag}</span>
-          ))}
+      <Link href={href} className="content-card-link" aria-label={`进入阅读：${item.title}`}>
+        <div className="content-card-meta">
+          <span>{formatDate(item.publishDate)}</span>
+          <span className="content-card-cta" aria-hidden="true">
+            进入阅读
+          </span>
         </div>
-      ) : null}
+        <h3 className="content-card-title">{item.title}</h3>
+        {showSummary ? <p className="content-card-summary">{item.summary || "暂无摘要"}</p> : null}
+        {item.tags.length > 0 ? (
+          <div className="content-card-tags">
+            {item.tags.map((tag) => (
+              <span key={`${item.id}-${tag}`}>{tag}</span>
+            ))}
+          </div>
+        ) : null}
+      </Link>
     </article>
   );
 }
