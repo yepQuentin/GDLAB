@@ -44,6 +44,14 @@ interface BaseApiResponse<T> {
   error?: string;
 }
 
+async function readApiResponse<T>(response: Response): Promise<BaseApiResponse<T> | null> {
+  try {
+    return (await response.json()) as BaseApiResponse<T>;
+  } catch {
+    return null;
+  }
+}
+
 function formatDateTime(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -114,10 +122,10 @@ export function CommentThread({
       return;
     }
 
-    const payload = (await response.json()) as BaseApiResponse<ThreadResponseData>;
-    if (!payload.ok || !payload.data) {
+    const payload = await readApiResponse<ThreadResponseData>(response);
+    if (!payload || !payload.ok || !payload.data) {
       setLoading(false);
-      setError(payload.error || "评论加载失败，请稍后重试。");
+      setError(payload?.error || "评论加载失败，请稍后重试。");
       return;
     }
 
@@ -178,9 +186,9 @@ export function CommentThread({
       return;
     }
 
-    const payload = (await response.json()) as BaseApiResponse<unknown>;
-    if (!response.ok || !payload.ok) {
-      setHint(payload.error || "发布失败，请稍后重试。");
+    const payload = await readApiResponse<unknown>(response);
+    if (!response.ok || !payload?.ok) {
+      setHint(payload?.error || "发布失败，请稍后重试。");
       setPendingCreate(false);
       return;
     }
@@ -219,9 +227,9 @@ export function CommentThread({
       return;
     }
 
-    const payload = (await response.json()) as BaseApiResponse<unknown>;
-    if (!response.ok || !payload.ok) {
-      setHint(payload.error || "点赞失败，请稍后重试。");
+    const payload = await readApiResponse<unknown>(response);
+    if (!response.ok || !payload?.ok) {
+      setHint(payload?.error || "点赞失败，请稍后重试。");
       setPendingLikeIds((prev) => ({ ...prev, [commentId]: false }));
       return;
     }
@@ -254,9 +262,9 @@ export function CommentThread({
       return;
     }
 
-    const payload = (await response.json()) as BaseApiResponse<unknown>;
-    if (!response.ok || !payload.ok) {
-      setHint(payload.error || "删除失败，请稍后重试。");
+    const payload = await readApiResponse<unknown>(response);
+    if (!response.ok || !payload?.ok) {
+      setHint(payload?.error || "删除失败，请稍后重试。");
       setPendingDeleteIds((prev) => ({ ...prev, [commentId]: false }));
       return;
     }
