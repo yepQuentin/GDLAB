@@ -373,7 +373,7 @@ export function CommentThread({
                 onChange={(event) => {
                   setReplyNickname(event.target.value);
                 }}
-                placeholder="请输入昵称"
+                placeholder="请输入昵称（选填）"
               />
             </div>
 
@@ -445,7 +445,7 @@ export function CommentThread({
             onChange={(event) => {
               setComposerNickname(event.target.value);
             }}
-            placeholder="请输入昵称"
+            placeholder="请输入昵称（选填）"
           />
         </div>
 
