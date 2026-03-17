@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { PodcastAudioPlayer } from "@/components/podcast-audio-player";
 import { EngagementActionBar, EngagementReadCount } from "@/components/engagement-bar";
+import { CommentThread } from "@/components/comment-thread";
 import { CaseOutlineNav } from "@/app/insights/[slug]/case-outline-nav";
 import {
   resolveCaseVideoPresentation,
@@ -509,7 +510,8 @@ function CaseArticleLayout({
             <CaseFailurePanel title="正文为空" description="这篇 Insights 文章已经发布，但正文还没有可渲染的内容块。" />
           ) : null}
 
-          <EngagementActionBar type="insight" slug={slug} />
+          <EngagementActionBar type="insight" slug={slug} className={styles.engagementFooter} />
+          <CommentThread type="insight" slug={slug} withTopDivider={false} />
         </div>
       </div>
     </div>

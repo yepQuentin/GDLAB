@@ -319,6 +319,10 @@
   border-top: 1px solid var(--case-line-soft);
 }
 
+.readingPaper > .engagementFooter {
+  border-top: 0;
+}
+
 .statsBar {
   display: flex;
   flex-wrap: wrap;

@@ -14,6 +14,10 @@ NOTION_MEDIA_CACHE_DIR=/var/lib/gdlab/notion-media-cache
 NOTION_MEDIA_STATE_FILE=/var/lib/gdlab/notion-media-cache/media-state.json
 NOTION_SNAPSHOT_RETENTION_DAYS=90
 REVALIDATE_URL=http://127.0.0.1:3000/api/internal/revalidate
+ENGAGEMENT_STATE_FILE=/var/lib/gdlab/engagement/stats.json
+COMMENT_STATE_FILE=/var/lib/gdlab/comments/store.json
+COMMENT_ADMIN_TOKEN=replace_with_a_long_random_secret
+COMMENT_SENSITIVE_WORDS=
 ```
 
 `NEXT_PUBLIC_SITE_URL` 必须设置为线上正式域名，否则 RSS / sitemap / robots 中的绝对链接会错误。

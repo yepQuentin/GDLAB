@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { EngagementActionBar, EngagementReadCount } from "@/components/engagement-bar";
+import { CommentThread } from "@/components/comment-thread";
 import { MarkdownContent } from "@/components/markdown-content";
 import {
   getCanonicalUrl,
@@ -254,6 +255,7 @@ export default async function DailyDetailPage({ params }: DailyDetailPageProps) 
       </div>
 
       <EngagementActionBar type="daily" slug={detail.meta.slug} />
+      <CommentThread type="daily" slug={detail.meta.slug} />
     </article>
   );
 }
